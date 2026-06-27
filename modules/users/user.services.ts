@@ -65,7 +65,7 @@ class UserService {
 }
 
 type JwtPayload = {
-  _id: string;
+  id: string;
   email: string;
 };
 
@@ -74,7 +74,7 @@ const SECRET = process.env.SECRET_TOKEN as string
 function generateToken(user : JwtPayload){
       return jwt.sign(
         {
-        id : user._id,
+        id : user.id,
         email : user.email
         },
         SECRET,
