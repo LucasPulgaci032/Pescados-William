@@ -1,30 +1,33 @@
 import { connectDB } from "@/lib/db";
-import UserPurchaseService from "@/modules/users/userPurchase/userPurchase.service";
-import jwt from 'jsonwebtoken'
-import { cookies } from "next/headers";
+import UserPurchaseService from "@/modules/purchases/userPurchase.service";
 
-interface JwtUserPayload extends jwt.JwtPayload {
-    userId: string;
-    role?: string;
-}
-
-
-export async function POST(req: Request){
+export async function GET(){
     await connectDB()
 
-    const token = (await cookies()).get("token")?.value
-
-    const secret = process.env.SECRET_TOKEN;
-
-    if (!secret) {
-        throw new Error("SECRET_TOKEN não definida");
+    try {
+        const purchases = await UserPurchaseService.getPurchases()
+        return Response.json({message : purchases}, {status: 200})
+    }catch(error){
+        return Response.json(
+            {status : 500}
+        )
     }
-    const payload = jwt.verify(token!,secret) as JwtUserPayload
+}
 
+export async function POST(req: Request) {
+  await connectDB();
+
+  try {
     const body = await req.json();
 
-    await UserPurchaseService.createOrder(
-    payload.userId,
-    body
-);
+    return Response.json(
+      { message: "OK", data: body },
+      { status: 200 }
+    );
+  } catch (error) {
+    return Response.json(
+      { message: "Erro no POST" },
+      { status: 500 }
+    );
+  }
 }
