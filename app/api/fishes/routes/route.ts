@@ -1,4 +1,4 @@
-import FishService, { uploadFishImage } from "@/modules/users/fish/fish.services"
+import FishService, { uploadFishImage } from "@/modules/fish/fish.services"
 import { connectDB } from "@/lib/db"
 
 export async function GET(){
