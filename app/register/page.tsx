@@ -1,11 +1,11 @@
 'use client'
 
-import Button from "../Components/Button";
-import Input from "../Components/input";
+import Button from "../Components/ui/Button";
+import Input from "../Components/ui/input";
 import axios from "axios";
-import Form from "../Components/form";
+import Form from "../Components/ui/form";
 import { useRouter } from "next/navigation";
-import GoogleLoginButton from "../Components/GoogleSSOButton";
+import GoogleLoginButton from "../Components/server/GoogleSSOButton";
 
 export default function Register(){
     const router = useRouter()
