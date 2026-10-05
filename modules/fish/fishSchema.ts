@@ -8,11 +8,21 @@ const fishSchema = new mongoose.Schema({
 },
     fishPicture : {
         type : String
-    },
-
+    },  
+ 
     price : {
         type : Number
-    }
+    },
+
+    type : {
+        type : String,
+        default : "Peixes inteiros"
+    },
+    available: {
+        type: Boolean,
+        default: true,
+        }
+
 }
 )
 
