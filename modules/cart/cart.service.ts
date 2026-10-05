@@ -8,85 +8,122 @@ type NormalizedItem = {
 function normalizeToKg(quantity: number, unit: string): NormalizedItem {
   const normalizedUnit = unit.toUpperCase().trim();
 
-  if (normalizedUnit === "KG") return { quantity, unit: "KG" };
-  if (normalizedUnit === "G") return { quantity: quantity / 1000, unit: "KG" };
+  switch (normalizedUnit) {
+    case "KG":
+      return {
+        quantity,
+        unit: "KG",
+      };
 
-  throw new Error(`Unidade inválida: ${unit}`);
+    case "G":
+      return {
+        quantity: quantity / 1000,
+        unit: "KG",
+      };
+
+    default:
+      throw new Error(`Unidade inválida: ${unit}`);
+  }
 }
 
 class CartService {
   static async getUserCart(userId: string) {
-    const cart = await Cart.findOne({ user: userId }).populate(
-      "items.fish",
-      "fishName price"
-    );
+  const cart = await Cart.findOne({ user: userId }).populate(
+    "items.fish",
+    "fishName price"
+  );
 
-    if (!cart?.items?.length) return [];
+  if (!cart || cart.items.length === 0) {
+    return [];
+  }
 
-    return cart.items.map((item: any) => ({
+  return cart.items
+    .filter((item: any) => item.fish)
+    .map((item: any) => ({
       _id: item._id.toString(),
       fishId: item.fish._id.toString(),
       fishName: item.fish.fishName,
       price: item.fish.price,
       quantity: item.quantity,
       unit: item.unit,
+      cutMethod: item.cutMethod ?? "inteiro",
     }));
-  }
+}
 
   static async addToCart(userId: string, product: any) {
     const normalized = normalizeToKg(product.quantity, product.unit);
 
-    let cart = await Cart.findOne({ user: userId });
+    const cutMethod =
+      (product.cutMethod ?? "").trim() || "inteiro";
 
-    // 🔥 SEMPRE garantir user no create
+    const cart = await Cart.findOne({ user: userId });
+
     if (!cart) {
-      cart = await Cart.create({
+      return Cart.create({
         user: userId,
         items: [
           {
             fish: product.fishId,
             quantity: normalized.quantity,
             unit: normalized.unit,
+            cutMethod,
           },
         ],
       });
-
-      return cart;
     }
 
-    const index = cart.items.findIndex(
-      (i: any) => i.fish.toString() === product.fishId
-    );
+    const existingItem = cart.items.find((item: any) => {
+      const itemCutMethod =
+        (item.cutMethod ?? "inteiro").trim();
 
-    if (index >= 0) {
-      cart.items[index].quantity += normalized.quantity;
-      cart.items[index].unit = "KG";
+      return (
+        item.fish.toString() === product.fishId &&
+        itemCutMethod === cutMethod
+      );
+    });
+
+    if (existingItem) {
+      existingItem.quantity += normalized.quantity;
+      existingItem.unit = "KG";
     } else {
       cart.items.push({
         fish: product.fishId,
         quantity: normalized.quantity,
         unit: "KG",
+        cutMethod,
       });
     }
 
-    return cart.save();
+    await cart.save();
+
+    return cart;
   }
 
-  static async deleteItem(userId: string, fishId: string) {
+  static async deleteItem(userId: string, itemId: string) {
     return Cart.findOneAndUpdate(
       { user: userId },
-      { $pull: { items: { fish: fishId } } },
+      {
+        $pull: {
+          items: {
+            _id: itemId,
+          },
+        },
+      },
       { new: true }
     );
   }
 
   static async clearCart(userId: string) {
-  return Cart.findOneAndUpdate(
-    { user: userId },
-    { $set: { items: [] } },
-    { new: true }
-  );
-}
+    return Cart.findOneAndUpdate(
+      { user: userId },
+      {
+        $set: {
+          items: [],
+        },
+      },
+      { new: true }
+    );
+  }
 }
 
 export default CartService;

@@ -30,6 +30,10 @@ const cartSchema = new mongoose.Schema<ICart>({
           enum: ["UN","G", "KG", "BRL"],
           required: true,
         },
+         cutMethod: {
+          type: String,
+          default: "inteiro",
+  }
       },
     ],
 },
