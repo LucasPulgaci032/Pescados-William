@@ -7,6 +7,7 @@ export interface IUserPurchaseItem {
   quantity: number;
   unit: "KG" | "UN";
   subtotal: number;
+  cutMethod: string
 }
 
 export interface IUserPurchase {
@@ -72,6 +73,10 @@ const userPurchaseSchema = new mongoose.Schema<IUserPurchase>(
           type: Number,
           required: true,
         },
+         cutMethod : {
+          type: String,
+          default : "inteiro"
+    },
       },
     ],
 
@@ -91,6 +96,7 @@ const userPurchaseSchema = new mongoose.Schema<IUserPurchase>(
       enum: ["ENTREGA", "RETIRADA"],
       required: true,
     },
+
 
     address: {
       type: addressSchema,
